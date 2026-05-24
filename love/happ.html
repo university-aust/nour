@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عالمنا الخاص | شاهَد</title>
+    <!-- خط القاهرة وأيقونات FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --burgundy: #800020;
+            --burgundy-glow: rgba(128, 0, 32, 0.6);
+            --dark-bg: #050102;
+            --heavy-glass: rgba(15, 3, 6, 0.9); 
+            --card-glass: rgba(20, 5, 10, 0.75);
+            --modal-glass: rgba(10, 2, 4, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--dark-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--burgundy); border-radius: 10px; }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-bg);
+            color: #fff;
+            background-image: url('shahed.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0.2) 30%, rgba(5,1,2,0.9) 100%);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1;
+        }
+
+        /* --- 💖 نظام القلوب الطافية في الخلفية 💖 --- */
+        .hearts-ambient-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .ambient-heart {
+            position: absolute;
+            bottom: -20px;
+            color: var(--burgundy);
+            opacity: 0;
+            font-size: 1rem;
+            animation: floatUpHeart linear forwards;
+        }
+
+        @keyframes floatUpHeart {
+            0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
+            10% { opacity: var(--target-opacity); }
+            90% { opacity: var(--target-opacity); }
+            100% { transform: translateY(-105vh) scale(1) rotate(45deg); opacity: 0; }
+        }
+
+        /* --- شاشة التحقق الأولى --- */
+        #auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .heart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 15px 30px var(--burgundy-glow)); 
+        }
+
+        .auth-card {
+            background: var(--heavy-glass);
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 15%, 65% 0%, 85% 0%, 100% 20%, 100% 45%, 85% 70%, 50% 100%, 15% 70%, 0% 45%, 0% 20%, 15% 0%, 35% 0%);
+            border: 3px solid var(--burgundy); 
+            padding: 90px 45px 40px 45px; 
+            text-align: center;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .shake { animation: shakeAnim 0.4s ease-in-out; }
+        @keyframes shakeAnim {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .auth-card h1 { font-size: 1.6rem; margin-bottom: 10px; text-shadow: 0 0 12px var(--burgundy); }
+        .auth-card p { font-size: 0.9rem; color: #dddddd; margin-bottom: 20px; line-height: 1.5; max-width: 280px; }
+
+        .input-group { width: 100%; max-width: 260px; margin-bottom: 15px; }
+        .input-group input {
+            width: 100%; padding: 12px 15px; background: rgba(0, 0, 0, 0.75);
+            border: 1.5px solid var(--burgundy); border-radius: 12px;
+            color: #fff; font-size: 1rem; text-align: center; outline: none; letter-spacing: 1px;
+        }
+        .input-group input::placeholder { color: #777; font-size: 0.9rem; letter-spacing: 0px; }
+
+        .submit-btn {
+            width: 100%; max-width: 260px; padding: 11px;
+            background: linear-gradient(135deg, var(--burgundy), #a31437);
+            border: none; border-radius: 12px; color: #fff; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(128, 0, 32, 0.4); transition: all 0.2s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(163, 20, 55, 0.6); }
+
+        .feedback-message { margin-top: 15px; font-size: 0.85rem; min-height: 25px; font-weight: bold; }
+        .error-text { color: #ff5252; animation: fadeIn 0.4s ease; }
+        .success-text { color: #2ed573; animation: fadeIn 0.4s ease; }
+
+        /* --- شاشة المحتوى الرئيسية --- */
+        #main-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            min-height: 100%;
+            padding: 40px 20px 140px 20px;
+            display: none; 
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .header-title { text-align: center; margin-bottom: 25px; animation: fadeInDown 1s ease; }
+        .header-title h2 { font-size: 2.2rem; color: #fff; text-shadow: 0 0 15px var(--burgundy); }
+        .header-title p { color: #bbb; font-size: 1rem; margin-top: 5px; }
+
+        /* --- ⏳ تصميم عداد الأيام الديناميكي الفاخر ⏳ --- */
+        .countdown-container {
+            max-width: 650px;
+            margin: 0 auto 35px auto;
+            background: rgba(15, 3, 7, 0.8);
+            border: 1px solid rgba(128, 0, 32, 0.4);
+            border-radius: 25px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(128, 0, 32, 0.2);
+            text-align: center;
+            animation: fadeIn 1.2s ease;
+        }
+        .countdown-container h4 {
+            font-size: 1rem;
+            color: #ddd;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .time-box {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--burgundy);
+            border-radius: 15px;
+            min-width: 75px;
+            padding: 10px 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .time-box span.num {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 8px var(--burgundy);
+        }
+        .time-box span.label {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .balloon-trigger-wrapper { text-align: center; margin-bottom: 35px; animation: fadeIn 1.2s ease; }
+        .balloon-btn {
+            background: linear-gradient(135deg, #a31437, var(--burgundy)); border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 30px; border-radius: 30px; color: #fff; font-size: 1rem; font-weight: bold;
+            cursor: pointer; box-shadow: 0 8px 20px rgba(128, 0, 32, 0.5); transition: all 0.3s ease;
+        }
+        .balloon-btn:hover { transform: scale(1.05); box-shadow: 0 10px 25px rgba(163, 20, 55, 0.7); }
+
+        /* --- 🎁 شبكة الأزرار السحرية 🎁 --- */
+        .timeline-buttons-grid {
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        .magic-memory-btn {
+            background: var(--card-glass);
+            border: 1px solid rgba(128, 0, 32, 0.4);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .magic-memory-btn:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: #a31437;
+            box-shadow: 0 12px 30px rgba(128, 0, 32, 0.4);
+            background: rgba(25, 6, 12, 0.85);
+        }
+        .magic-memory-btn .btn-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--burgundy), #a31437);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(128, 0, 32, 0.5);
+        }
+        .magic-memory-btn:hover .btn-icon { transform: rotate(15deg) scale(1.1); }
+        .magic-memory-btn span.btn-date { font-size: 0.8rem; background: rgba(255, 255, 255, 0.1); padding: 2px 10px; border-radius: 20px; color: #ddd; }
+        .magic-memory-btn h3 { font-size: 1.1rem; color: #fff; font-weight: 600; }
+
+        /* --- ✉️ صندوق الرسائل السرية العائم ✉️ --- */
+        .secret-notes-widget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #a31437, var(--burgundy));
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: none; /* يظهر بعد فتح القفل */
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 99;
+            box-shadow: 0 8px 25px rgba(163, 20, 55, 0.6);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: pulseWidget 2s infinite ease-in-out;
+        }
+        .secret-notes-widget:hover {
+            transform: scale(1.1) rotate(-10deg);
+            box-shadow: 0 12px 30px rgba(163, 20, 55, 0.8);
+        }
+        @keyframes pulseWidget {
+            0%, 100% { box-shadow: 0 8px 25px rgba(163, 20, 55, 0.5); }
+            50% { box-shadow: 0 8px 35px rgba(212, 93, 121, 0.8); transform: translateY(-3px); }
+        }
+
+        /* --- 🌟 الشاشات المنبثقة (Modals) 🌟 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            padding: 20px;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--modal-glass);
+            border: 2px solid var(--burgundy);
+            border-radius: 24px;
+            max-width: 550px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(128, 0, 32, 0.5);
+            transform: scale(0.8) translateY(30px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; width: 36px; height: 36px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 10; transition: background 0.2s, transform 0.2s;
+        }
+        .modal-close-btn:hover { background: var(--burgundy); transform: scale(1.1); }
+
+        .modal-img-wrapper { width: 100%; height: 280px; overflow: hidden; border-bottom: 2px solid rgba(128, 0, 32, 0.3); }
+        .modal-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-body { padding: 25px; text-align: center; }
+        .modal-body .modal-tag { display: inline-block; background: var(--burgundy); padding: 3px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; }
+        .modal-body h3 { font-size: 1.4rem; color: #fff; margin-bottom: 12px; text-shadow: 0 0 10px var(--burgundy); }
+        .modal-body p { font-size: 0.95rem; color: #e0e0e0; line-height: 1.7; }
+
+        /* تخصيص محتوى صندوق الرسائل */
+        .note-icon-header { font-size: 3rem; color: #d45d79; margin-bottom: 15px; animation: floatIcon 2s infinite ease-in-out; }
+
+        /* حاوية بالونات الكلمات المفرقعة */
+        .balloon-area { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+        .balloon {
+            position: absolute; bottom: -150px; width: 75px; height: 90px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer; pointer-events: auto; display: flex; justify-content: center; align-items: center;
+            animation: flyUp 7s linear forwards; box-shadow: inset -8px -8px 15px rgba(0,0,0,0.3), 0 6px 15px rgba(0,0,0,0.2);
+        }
+        .balloon::after { content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--inherit-color); }
+        .balloon-string { position: absolute; bottom: -48px; left: 50%; width: 1px; height: 40px; background: rgba(255, 255, 255, 0.4); }
+
+        @keyframes flyUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(15deg); opacity: 0.9; }
+        }
+
+        .popped-word {
+            position: absolute; color: #fff; font-weight: bold; font-size: 1.3rem; text-shadow: 0 0 10px var(--burgundy), 0 0 20px #fff;
+            pointer-events: none; animation: wordFloatOut 2.5s ease-out forwards; z-index: 3000;
+        }
+        @keyframes wordFloatOut {
+            0% { transform: scale(0.6); opacity: 0; }
+            20% { transform: scale(1.1); opacity: 1; }
+            80% { opacity: 1; transform: translateY(-40px) scale(1); }
+            100% { opacity: 0; transform: translateY(-70px) scale(0.8); }
+        }
+
+        /* --- مشغل الموسيقى الطافي --- */
+        .audio-player-fixed {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 80%; max-width: 360px; background: rgba(18, 4, 8, 0.9);
+            border: 1px solid var(--burgundy); border-radius: 50px; padding: 10px 20px;
+            display: flex; align-items: center; justify-content: space-between; gap: 15px;
+            z-index: 5; backdrop-filter: blur(20px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            display: none; animation: fadeInUp 1s ease;
+        }
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .player-icon-music { width: 36px; height: 36px; background: var(--burgundy); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1rem; color: #fff; }
+        .rotate-music { animation: rotateAnim 3s linear infinite; }
+        @keyframes rotateAnim { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .track-details h4 { font-size: 0.85rem; color: #fff; }
+        .track-details p { font-size: 0.7rem; color: #aaa; }
+        .player-controls button { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; transition: all 0.2s; }
+        .player-controls button:hover { color: #a31437; transform: scale(1.1); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+        @media (max-width: 600px) {
+            .modal-img-wrapper { height: 190px; }
+            .timeline-buttons-grid { grid-template-columns: 1fr; }
+            .countdown-timer { gap: 8px; }
+            .time-box { min-width: 60px; padding: 8px 3px; }
+            .time-box span.num { font-size: 1.2rem; }
+            .secret-notes-widget { bottom: 90px; right: 20px; } /* لكي لا يتداخل مع مشغل الموسيقى بالهواتف */
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="overlay"></div>
+    
+    <!-- 💖 نظام القلوب الخلفية المتواصلة 💖 -->
+    <div class="hearts-ambient-container" id="hearts-ambient"></div>
+    
+    <!-- حاوية البالونات عند الضغط -->
+    <div class="balloon-area" id="balloon-container"></div>
+
+    <!-- ================= الشاشة الأولى: تحقق القلب ================= -->
+    <div id="auth-screen">
+        <div class="heart-wrapper" id="card-wrapper">
+            <div class="auth-card">
+                <h1>بوابة العبور السرية 🔐</h1>
+                <p>للدخول إلى عالمنا، أثبت أنك صاحبه.. متى كان تاريخ ارتباطنا الأول؟</p>
+                
+                <div class="input-group">
+                    <input type="text" id="love-date" placeholder="السنة / الشهر / اليوم" required>
+                </div>
+
+                <button class="submit-btn" onclick="verifyDate()">تأكيد التاريخ ودخول الموقع</button>
+
+                <div class="feedback-message" id="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= الشاشة الثانية: المحتوى الكامل والميزات ================= -->
+    <div id="main-content">
+        <div class="header-title">
+            <h2>صندوق ذكرياتنا السري 🤍</h2>
+            <p>كل التفاصيل معكِ لا تُنسى، خطوة بخطوة كتبنا الحكاية</p>
+        </div>
+
+      <!-- ⏳ العداد التفاعلي المضاف حديثاً ⏳ -->
+        <div class="countdown-container">
+            <h4>الوقت الذي مضى وأنا أحبكِ في تفاصيلنا.. ✨</h4>
+            <div class="countdown-timer">
+                <div class="time-box"><span class="num" id="count-days">00</span><span class="label">يوم</span></div>
+                <div class="time-box"><span class="num" id="count-hours">00</span><span class="label">ساعة</span></div>
+                <div class="time-box"><span class="num" id="count-minutes">00</span><span class="label">دقيقة</span></div>
+                <div class="time-box"><span class="num" id="count-seconds">00</span><span class="label">ثانية</span></div>
+            </div>
+        </div>
+
+        <div class="balloon-trigger-wrapper">
+            <button class="balloon-btn" onclick="releaseBalloons()">
+                انقر لتهديك السماء كلماتنا <i class="fas fa-balloon">🎈</i>
+            </button>
+        </div>
+
+        <!-- 🎁 شبكة الأزرار الخمسة الغامضة للذكريات 🎁 -->
+        <div class="timeline-buttons-grid">
+            <div class="magic-memory-btn" onclick="openModal('modal1')">
+                <div class="btn-icon"><i class="fas fa-heart"></i></div>
+                <span class="btn-date">الخطوة الأولى</span>
+                <h3>هنا بدأت حكايتنا</h3>
+            </div>
+            <div class="magic-memory-btn" onclick="openModal('modal2')">
+                <div class="btn-icon"><i class="fas fa-comments"></i></div>
+                <span class="btn-date">حديث لا ينتهي</span>
+                <h3>أول حوار طويل</h3>
+            </div>
+            <div class="magic-memory-btn" onclick="openModal('modal3')">
+                <div class="btn-icon"><i class="fas fa-gift"></i></div>
+                <span class="btn-date">تفاصيل صغيرة</span>
+                <h3>الهدية الأولى</h3>
+            </div>
+            <div class="magic-memory-btn" onclick="openModal('modal4')">
+                <div class="btn-icon"><i class="fas fa-laugh-beam"></i></div>
+                <span class="btn-date">ضحكات مشتركة</span>
+                <h3>يوم لا يُنسى</h3>
+            </div>
+            <div class="magic-memory-btn" onclick="openModal('modal5')">
+                <div class="btn-icon"><i class="fas fa-infinity"></i></div>
+                <span class="btn-date">العهد الدائم</span>
+                <h3>حاضرنا ومستقبلنا</h3>
+            </div>
+        </div>
+
+        <!-- مشغل الموسيقى الفاخر -->
+        <div class="audio-player-fixed" id="audio-player-container">
+            <div class="player-info">
+                <div class="player-icon-music" id="music-disc"><i class="fas fa-music"></i></div>
+                <div class="track-details">
+                    <h4>أغنيته المفضلة 🎵</h4>
+                    <p>صوت يختصر تفاصيلنا</p>
+                </div>
+            </div>
+            <div class="player-controls">
+                <button id="play-btn" onclick="toggleAudio()"><i class="fas fa-play"></i></button>
+            </div>
+            <audio id="my-audio" src="nano.mp3" loop></audio>
+        </div>
+    </div>
+
+    <!-- ✉️ الزر العائم لصندوق الرسائل المخفية واليومية المتجددة ✉️ -->
+    <div class="secret-notes-widget" id="notes-widget" onclick="openSecretNote()">
+        <i class="fas fa-envelope-open-text"></i>
+    </div>
+
+    <!-- ================= 🌟 الشاشات المنبثقة للذكريات والرسائل 🌟 ================= -->
+    
+    <!-- مودال الرسالة السرية اليومية المتجددة -->
+    <div class="modal-overlay" id="modal-secret-note" onclick="closeModal('modal-secret-note')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal-secret-note')"><i class="fas fa-times"></i></button>
+            <div class="modal-body" style="padding: 40px 25px;">
+                <div class="note-icon-header"><i class="fas fa-envelope-heart"></i></div>
+                <span class="modal-tag" id="note-day-tag">رسالة اليوم</span>
+                <h3 id="note-title">رسالة مخبأة لك..</h3>
+                <p id="note-content" style="font-size: 1.1rem; font-style: italic; color: #f0f0f0;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال 1 -->
+    <div class="modal-overlay" id="modal1" onclick="closeModal('modal1')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal1')"><i class="fas fa-times"></i></button>
+            <div class="modal-img-wrapper">
+                <img src="pic1.jpg" alt="ذكرى 1" onerror="this.src='https://placehold.co/600x400/120305/fff?text=Photo+1'">
+            </div>
+            <div class="modal-body">
+                <span class="modal-tag">الخطوة الأولى</span>
+                <h3>هنا بدأت حكايتنا</h3>
+                <p>بيقولو الصدفة بتصنع الحياة.. وأنا صدفتي بدأت بصورة🌝 بلحظتا انت شفتني بقلبك قبل عيونك كانت الصورة مجرد محرض صغير دفعك لتعرف اكتر عن هل شخص المجهول يلي مجرد صورة ما مبينة ملامحي فيا هزت كيانك وانحطت لفترة صغيرة جدا بحكمة من الله لتشوفا وينولد عندك هل احساس الجميل ❤️🫂 وهنااااا بدأت رحلتك🔥🌝'</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال 2 -->
+    <div class="modal-overlay" id="modal2" onclick="closeModal('modal2')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal2')"><i class="fas fa-times"></i></button>
+            <div class="modal-img-wrapper">
+                <img src="pic2.jpg" alt="ذكرى 2" onerror="this.src='https://placehold.co/600x400/120305/fff?text=Photo+2'">
+            </div>
+            <div class="modal-body">
+                <span class="modal-tag">حديث لا ينتهي</span>
+                <h3>أول حوار طويل</h3>
+                <p>لحظات الخجل الاولى من دلائل الأولى على صدق المشاعر لأي حكاية حب في بداياتنا.. كان كل شيء بياخد العقل ومخلوط بنبرة خجل دافية بتذكر كيف كان قلبي يدق بسرعة لمجرد انو عيونا تلتقي وكيف كنا نتهرب من نظرات بعض ونحن عم نبتسم من جواتنا كل كلمة،كل سلام كل ضحكة كانت ناقصة بسبب التوتر والخجل بس مع هيك كانت طالعة من أصدق مكان بلقلب وبلشنا شوي شوي بعدا ناخد عبعض نفهم ونحس ببعض لحتى صرنا بدون حتى مانشوف الملامح نحس بأيا نكشة او دقرة بتصيب الطرف التاني ونحاول نبعد عن ايا شي ممكن يزعلو ونحاول نفرح بعض ونسند بعض بأدق التفاصيل🥹🥹🥹🫶🏻'</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال 3 -->
+    <div class="modal-overlay" id="modal3" onclick="closeModal('modal3')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal3')"><i class="fas fa-times"></i></button>
+            <div class="modal-img-wrapper">
+                <img src="pic4.jpg" alt="ذكرى 3" onerror="this.src='https://placehold.co/600x400/120305/fff?text=Photo+3'">
+            </div>
+            <div class="modal-body">
+                <span class="modal-tag">تفاصيل صغيرة</span>
+                <h3>الهدية الأولى</h3>
+                <p>لما شفت الفرحة بعيونك وأنت عم تمسك الصورة يلي طبعتلك ياها رغم انو كانت كتير بسيطة وعفوية حسيت إني ملكت الدنيا كلها. هدفي كله كان إني وثّق ضحكتنا بشي ملموس يضل قدامك دايماً، واليوم بدعي ربي تضل هالضحكة منورة وجهك، ويضل حبنا يكبر بكل لحظة ونعمل ذكريات أحلى وأحلى سوا ❤️' 
+</p>
+            </div>
+        </div>
+    </div>
+    <!-- مودال 4 -->
+    <div class="modal-overlay" id="modal4" onclick="closeModal('modal4')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal4')"><i class="fas fa-times"></i></button>
+            <div class="modal-img-wrapper">
+                <img src="pic5.jpg" alt="ذكرى 4" onerror="this.src='https://placehold.co/600x400/120305/fff?text=Photo+4'">
+            </div>
+            <div class="modal-body">
+                <span class=ومميز"modal-tag">ضحكات مشتركة</span>
+                <h3>يوم لا يُنسى</h3>
+                <p>تذكر هديك المرة يلي كنت بدك تفاجئني فيها وراحت عليك نومة.. بوقتا يمكن الخطة ما مشيت مثل ما بدك، بس طلعت أحلى وأعفوية مفاجأة بعمري! لأنو حتى وأنت نايم، كنت عم تصنعلي ذكرى ما بتموت. تفاصيلك العفوية هيي يلي بتخليني حبك كل يوم أكتر، ويا رب تضل دايماً بهالحياة أحلى مفاجآتي وأجمل أقداري ❤️'</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال 5 -->
+    <div class="modal-overlay" id="modal5" onclick="closeModal('modal5')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="closeModal('modal5')"><i class="fas fa-times"></i></button>
+            <div class="modal-img-wrapper">
+                <img src="pic3.jpg" alt="ذكرى 5" onerror="this.src='https://placehold.co/600x400/120305/fff?text=Photo+5'">
+            </div>
+            <div class="modal-body">
+                <span class="modal-tag">العهد الدائم</span>
+                <h3>حاضرنا ومستقبلنا</h3>
+                <p>هاد أول عيد فطر النا ونحن سوا، وأول صورة بتجمعنا بضحكة العيد.. وبدعي ربي تضل ضحكتنا مكملة وما تكون الأخيرة. العيد الحقيقي مو بس بالناس والزينة، العيد هو لما نكون سوا متطمنة جنبك. كل عام وأنت أول وأخر حب بقلبي وأحلى أعيادي ❤️'</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تاريخ الارتباط الموثق: 7 آب 2025
+        const anniversaryDate = new Date("2025-08-07T00:00:00");
+
+        // دالة إنتاج جزيئات القلوب في الخلفية بشكل متواصل
+        window.addEventListener('DOMContentLoaded', () => {
+            const ambientContainer = document.getElementById('hearts-ambient');
+            setInterval(() => { createAmbientHeart(ambientContainer); }, 400);
+        });
+
+        function createAmbientHeart(container) {
+            const heart = document.createElement('i');
+            heart.classList.add('fas', 'fa-heart', 'ambient-heart');
+            const randomLeft = Math.random() * 100;
+            const randomSize = 10 + Math.random() * 15; 
+            const randomDuration = 6 + Math.random() * 6; 
+            const randomOpacity = 0.1 + Math.random() * 0.25; 
+            const colors = ["#800020", "#a31437", "#5c0017", "#d45d79"];
+            
+            heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+            heart.style.left = randomLeft + '%';
+            heart.style.fontSize = randomSize + 'px';
+            heart.style.animationDuration = randomDuration + 's';
+            heart.style.setProperty('--target-opacity', randomOpacity);
+            container.appendChild(heart);
+            heart.addEventListener('animationend', () => { heart.remove(); });
+        }
+
+        // دالة تحديث عداد الوقت الحقيقي المستمر
+        function updateLoveCounter() {
+            const now = new Date();
+            const difference = now - anniversaryDate;
+
+            if (difference < 0) return; // حماية في حال كان التاريخ مستقبلياً
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((difference / 1000 / 60) % 60);
+            const seconds = Math.floor((difference / 1000) % 60);
+
+            document.getElementById('count-days').innerText = days < 10 ? '0' + days : days;
+            document.getElementById('count-hours').innerText = hours < 10 ? '0' + hours : hours;
+            document.getElementById('count-minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('count-seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+        }
+
+        // مصفوفة الرسائل المخصصة المتغيرة حسب أيام الأسبوع السبعة
+        const weeklyNotes = {
+            0: { day: "الأحد", msg: "«في زحام هذا العالم المليء بالشيفرات والأكواد، تبقى أنت الكلمة الوحيدة المفتاحية التي تمنح حياتي سلامها وعمقها المعنوي الفاخر.»" },
+            1: { day: "الإثنين", msg: "«القلب لا يختار عشوائياً، بل يختار من يشبهه في الملامح، الروح، والتفاصيل الدقيقة. دمتَ لي أماناً وملجأً دائماً.»" },
+            2: { day: "الثلاثاء", msg: "«كل يوم يمر معك يثبت لي أن الأوقات الصادقة لا تُقاس بالسنين، بل بنبضات الارتياح والضحكات التي تنبع من أعماق القلب.»" },
+            3: { day: "الأربعاء", msg: "«لو كان للدفء صوتاً، لكان نبرة حديثك الطويل في لحظات سكوننا. شكراً لأنك هنا دائماً لتجعل أيامي أجمل بكثير.»" },
+            4: { day: "الخميس", msg: "«بين تفاصيل الماضي وحكايات الحاضر، أعدك بأن يبقى هذا الصندوق مليئاً بالعهود، وأن تظل أنت الحقيقة الثابتة بقلبي.»" },
+            5: { day: "الجمعة", msg: "«جميلة هي الأيام التي تُكتب بصدق المشاعر، والأجمل هو وجودك كشريك حقيقي ومستند روحي قوي لا يميل ولا يغيب.»" },
+            6: { day: "السبت", msg: "«نهاية أسبوع دافئة، تذكر دائماً عند فتح هذه الرسالة أن هناك قلباً ينبض لك، ويحسب كل ثانية تمضي وأنت في حياته.»" }
+        };
+
+        function openSecretNote() {
+            const currentDayIndex = new Date().getDay(); // جلب رقم اليوم الحالي (0 لـ 6)
+            const noteData = weeklyNotes[currentDayIndex];
+
+            document.getElementById('note-day-tag').innerText = `رسالة يوم ${noteData.day} ✨`;
+            document.getElementById('note-content').innerText = noteData.msg;
+            openModal('modal-secret-note');
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        // دالة التحقق من التاريخ السرّي لبوابة العبور (2025-08-07)
+        function verifyDate() {
+            let dateInput = document.getElementById('love-date').value.trim();
+            dateInput = dateInput.replace(/\//g, "-"); 
+
+            const feedback = document.getElementByI
+            d('feedback');
+            const cardWrapper = document.getElementById('card-wrapper');
+            const correctDate = "2025-08-07"; 
+
+            cardWrapper.classList.remove('shake');
+
+            if (formatDateString(dateInput) === formatDateString(correctDate)) {
+                feedback.innerHTML = '<span class="success-text"><i class="fas fa-heart-pulse"></i> صحيح! أهلاً بك في عالمنا الخاص...</span>';
+                
+                setTimeout(() => {
+                    const authScreen = document.getElementById('auth-screen');
+                    const mainContent = document.getElementById('main-content');
+                    const playerContainer = document.getElementById('audio-player-container');
+                    const notesWidget = document.getElementById('notes-widget');
+                    
+                    authScreen.style.opacity = '0';
+                    authScreen.style.transform = 'scale(0.9)';
+                    
+                    setTimeout(() => {
+                        authScreen.style.display = 'none';
+                        mainContent.style.display = 'block';
+                        playerContainer.style.display = 'flex';
+                        notesWidget.style.display = 'flex'; // إظهار الصندوق العائم للملاحظات السرية
+                        
+                        // بدء تشغيل وتحديث العداد الزمني كل ثانية فور الدخول للموقع
+                        updateLoveCounter();
+                        setInterval(updateLoveCounter, 1000);
+
+                        setTimeout(() => { mainContent.style.opacity = '1'; }, 50);
+                    }, 800);
+                }, 1000);
+            } else {
+                cardWrapper.classList.add('shake');
+                const sadMessages = [
+                    "<i class='fas fa-sad-tear'></i> أوه.. أيعقل أنك نسيت يومنا المميز؟ حاول مجدداً..",
+                    "<i class='fas fa-heart-broken'></i> خيبة صغيرة لقلبي.. هذا ليس تاريخنا الصحيح.",
+                    "<i class='fas fa-face-frown'></i> الإجابة خاطئة.. ركز جيداً فالقلب لا ينسى تفاصليه."
+                ];
+                feedback.innerHTML = `<span class="error-text">${sadMessages[Math.floor(Math.random() * sadMessages.length)]}</span>`;
+            }
+        }
+
+        function formatDateString(str) {
+            const parts = str.split('-');
+            if(parts.length !== 3) return str;
+            return `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}`;
+        }
+
+        // دالة التحكم بالموسيقى
+        function toggleAudio() {
+            const audio = document.getElementById('my-audio');
+            const playBtn = document.getElementById('play-btn');
+            const musicDisc = document.getElementById('music-disc');
+            if (audio.paused) {
+                audio.play(); playBtn.innerHTML = '<i class="fas fa-pause"></i>'; musicDisc.classList.add('rotate-music');
+            } else {
+                audio.pause(); playBtn.innerHTML = '<i class="fas fa-play"></i>'; musicDisc.classList.remove('rotate-music');
+            }
+        }
+
+        // نظام البالونات والكلمات المفرقعة الممتعة
+        const specialWords = ["وتيني ❤️", "أماني 🔐", "ملجئي ✨", "ضحكتي 🥰", "عالمي 🌍", "قلبي 🫀", "روحي 🕊️", "كوني 🌌", "نبض قلبي 💓", "حكايتي 📖"];
+        const balloonColors = ["#800020", "#a31437", "#4a0404", "#d45d79"];
+
+        function releaseBalloons() {
+            const container = document.getElementById('balloon-container');
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => { createSingleBalloon(container); }, i * 250);
+            }
+        }
+
+        function createSingleBalloon(container) {
+            const balloon = document.createElement('div');
+            balloon.classList.add('balloon');
+            const string = document.createElement('div');
+            string.classList.add('balloon-string');
+            balloon.appendChild(string);
+
+            const randomColor = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+            const randomLeft = Math.random() * 90;
+            const randomSizeFactor = 0.8 + Math.random() * 0.5;
+
+            balloon.style.backgroundColor = randomColor;
+            balloon.style.left = randomLeft + '%';
+            balloon.style.width = (75 * randomSizeFactor) + 'px';
+            balloon.style.height = (90 * randomSizeFactor) + 'px';
+            balloon.style.setProperty('--inherit-color', randomColor);
+
+            const randomWord = specialWords[Math.floor(Math.random() * specialWords.length)];
+            balloon.dataset.word = randomWord;
+
+            balloon.addEventListener('mouseover', () => { popBalloon(balloon, container); });
+            balloon.addEventListener('touchstart', () => { popBalloon(balloon, container); });
+
+            container.appendChild(balloon);
+            balloon.addEventListener('animationend', () => { balloon.remove(); });
+        }
+
+        function popBalloon(balloon, container) {
+            const rect = balloon.getBoundingClientRect();
+            const wordEl = document.createElement('div');
+            wordEl.classList.add('popped-word');
+            wordEl.innerText = balloon.dataset.word;
+            wordEl.style.top = rect.top + 'px';
+            wordEl.style.left = (rect.left + rect.width/4) + 'px';
+
+            container.appendChild(wordEl);
+            balloon.remove();
+            wordEl.addEventListener('animationend', () => { wordEl.remove(); });
+        }
+    </script>
+</body>
+</html>
